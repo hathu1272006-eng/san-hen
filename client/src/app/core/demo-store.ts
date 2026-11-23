@@ -1,7 +1,7 @@
 import data from '../../../../shared/courts.json';
 import { bookableDays, isUpcoming } from '../../../../shared/schedule.mjs';
 import { fallbackRecommendations, matchesCourt } from '../../../../shared/search.mjs';
-import { Booking, BookingRequest, Court, Filters, Slot } from './models';
+import { Booking, BookingRequest, canPay, Court, Filters, Slot } from './models';
 
 const courts = data as Court[];
 const bookingKey = 'san-hen.demo.bookings.v1';
@@ -21,6 +21,16 @@ function bookings(): Booking[] {
   } catch {
     return [];
   }
+}
+
+function getBooking(code: string, all = bookings()): Booking {
+  const found = all.find(item => item.code === code);
+  if (!found) throw new Error('Không tìm thấy lượt đặt.');
+  return found;
+}
+
+function writeBookings<T>(write: () => T): Promise<T> {
+  return navigator.locks ? navigator.locks.request(bookingKey, write) : Promise.resolve().then(write);
 }
 
 function court(slug: string): Court {
@@ -46,23 +56,49 @@ export const demoStore = {
   slots,
   recommendations: (slug: string) => fallbackRecommendations(courts, court(slug)),
   bookings: () => bookings().sort((a, b) => (a.date + a.hour).localeCompare(b.date + b.hour)),
-  book(request: BookingRequest): Booking {
-    const selected = court(request.slug);
-    if (!slots(request.slug, request.date).some(slot => slot.hour === request.hour && slot.status === 'available')) {
-      throw new Error('Khung giờ này đã hết chỗ. Vui lòng chọn giờ khác.');
-    }
-    const code = 'SH-' + crypto.randomUUID().slice(0, 8).toUpperCase();
-    const booking: Booking = { ...request, code, name: selected.name, location: selected.location, price: selected.price, status: 'confirmed' };
-    save([...bookings(), booking]);
-    return booking;
+  booking: (code: string) => getBooking(code),
+  book(request: BookingRequest): Promise<Booking> {
+    return writeBookings(() => {
+      const selected = court(request.slug);
+      if (!slots(request.slug, request.date).some(slot => slot.hour === request.hour && slot.status === 'available')) {
+        throw new Error('Khung giờ này đã hết chỗ. Vui lòng chọn giờ khác.');
+      }
+      const code = 'SH-' + crypto.randomUUID().slice(0, 8).toUpperCase();
+      const booking: Booking = {
+        ...request, code, name: selected.name, location: selected.location,
+        price: selected.price, status: 'confirmed', payment: { status: 'unpaid' },
+      };
+      save([...bookings(), booking]);
+      return booking;
+    });
   },
-  cancel(code: string): void {
-    const all = bookings();
-    const found = all.find(item => item.code === code);
-    if (!found || found.status !== 'confirmed' || !isUpcoming(found.date, found.hour)) {
-      throw new Error('Lượt đặt sân này không thể hủy.');
-    }
-    found.status = 'canceled';
-    save(all);
+  pay(code: string): Promise<Booking> {
+    return writeBookings(() => {
+      const all = bookings();
+      const booking = getBooking(code, all);
+      if (booking.payment?.status === 'paid') return booking;
+      if (!canPay(booking)) throw new Error('Lượt đặt đã hủy hoặc đã đến giờ chơi.');
+
+      booking.payment = {
+        status: 'paid', method: 'demo', reference: 'PAY-' + code.slice(3),
+        amount: booking.price, paidAt: new Date().toISOString(),
+      };
+      save(all);
+      return booking;
+    });
+  },
+  cancel(code: string): Promise<void> {
+    return writeBookings(() => {
+      const all = bookings();
+      const booking = getBooking(code, all);
+      if (booking.status !== 'confirmed' || !isUpcoming(booking.date, booking.hour)) {
+        throw new Error('Lượt đặt sân này không thể hủy.');
+      }
+      booking.status = 'canceled';
+      if (booking.payment?.status === 'paid') {
+        booking.payment = { ...booking.payment, status: 'refunded', refundedAt: new Date().toISOString() };
+      }
+      save(all);
+    });
   },
 };

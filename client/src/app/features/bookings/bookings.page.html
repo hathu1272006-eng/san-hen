@@ -1,5 +1,5 @@
 <section class="subhero">
-  <div class="wrap"><h1>Lịch của tôi</h1><p>Xem mã giữ chỗ, giờ chơi và các lượt đặt đã hủy.</p></div>
+  <div class="wrap"><h1>Lịch của tôi</h1><p>Xem giờ chơi, trạng thái thanh toán và các lượt đặt đã hủy.</p></div>
 </section>
 <section class="wrap section my-bookings" aria-label="Các lượt đặt sân">
   @if (loading()) {
@@ -23,14 +23,27 @@
           <h2><a [routerLink]="['/san', booking.slug]">{{ booking.name }}</a></h2>
           <p>{{ calendarLabel(booking.date) }} · {{ booking.hour }}–{{ endHour(booking.hour) }}</p>
           <p>{{ booking.location }}</p>
+          @if (booking.payment?.status === 'paid' || booking.payment?.status === 'refunded') {
+            <p class="booking-payment-label">{{ paymentLabel(booking.payment) }}</p>
+          } @else if (booking.status === 'confirmed') {
+            <p class="booking-payment-label unpaid">{{ paymentLabel(booking.payment) }}</p>
+          }
         </div>
         <div class="booking-actions">
           <span class="status" [class.canceled]="booking.status === 'canceled'">
             {{ booking.status === 'canceled' ? 'Đã hủy' : isUpcoming(booking.date, booking.hour) ? 'Đã giữ chỗ' : 'Đã qua' }}
           </span>
           <strong>{{ money(booking.price) }}</strong>
+          @if (selected() !== booking.code && canPay(booking)) {
+            <a class="button button-primary" [routerLink]="['/thanh-toan', booking.code]">Thanh toán thử</a>
+          } @else if (selected() !== booking.code && booking.payment && booking.payment.status !== 'unpaid') {
+            <a class="text-link" [routerLink]="['/thanh-toan', booking.code]">Xem biên nhận</a>
+          }
           @if (booking.status === 'confirmed' && isUpcoming(booking.date, booking.hour)) {
             @if (selected() === booking.code) {
+              @if (booking.payment?.status === 'paid') {
+                <p class="cancel-note">Khoản thanh toán thử sẽ được hoàn khi hủy.</p>
+              }
               <div class="cancel-actions">
                 <button type="button" class="button button-danger" [disabled]="!!canceling()" (click)="cancel(booking.code)">{{ canceling() ? 'Đang hủy…' : 'Xác nhận hủy' }}</button>
                 <button type="button" class="text-link" [disabled]="!!canceling()" (click)="selected.set('')">Giữ lịch</button>

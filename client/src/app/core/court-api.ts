@@ -37,14 +37,28 @@ export class CourtApi {
     return firstValueFrom(this.http.get<Booking[]>(this.base + '/bookings'));
   }
 
+  async booking(code: string): Promise<Booking> {
+    if (environment.demo) return (await import('./demo-store')).demoStore.booking(code);
+    return firstValueFrom(this.http.get<Booking>(this.bookingUrl(code)));
+  }
+
   async book(request: BookingRequest): Promise<Booking> {
     if (environment.demo) return (await import('./demo-store')).demoStore.book(request);
     return firstValueFrom(this.http.post<Booking>(this.base + '/bookings', request));
   }
 
+  async pay(code: string): Promise<Booking> {
+    if (environment.demo) return (await import('./demo-store')).demoStore.pay(code);
+    return firstValueFrom(this.http.post<Booking>(this.bookingUrl(code) + '/payment', { method: 'demo' }));
+  }
+
   async cancel(code: string): Promise<void> {
     if (environment.demo) return (await import('./demo-store')).demoStore.cancel(code);
-    await firstValueFrom(this.http.post(this.base + '/bookings/' + encodeURIComponent(code) + '/cancel', {}));
+    await firstValueFrom(this.http.post(this.bookingUrl(code) + '/cancel', {}));
+  }
+
+  private bookingUrl(code: string): string {
+    return this.base + '/bookings/' + encodeURIComponent(code);
   }
 
   private courtUrl(slug: string): string {

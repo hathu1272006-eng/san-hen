@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isUpcoming } from '../../../../../shared/schedule.mjs';
 import { CourtApi, messageFor } from '../../core/court-api';
-import { Booking, calendarLabel, endHour, money } from '../../core/models';
+import { Booking, calendarLabel, canPay, endHour, money, paymentLabel } from '../../core/models';
 
 @Component({
   imports: [RouterLink],
@@ -17,8 +17,10 @@ export class BookingsPage {
   readonly selected = signal('');
   readonly notice = signal('');
   readonly calendarLabel = calendarLabel;
+  readonly canPay = canPay;
   readonly endHour = endHour;
   readonly money = money;
+  readonly paymentLabel = paymentLabel;
   readonly isUpcoming = isUpcoming;
 
   constructor() {
@@ -44,9 +46,14 @@ export class BookingsPage {
     this.canceling.set(code);
     try {
       await this.api.cancel(code);
-      this.bookings.update(items => items.map(item => item.code === code ? { ...item, status: 'canceled' } : item));
+      this.bookings.update(items => items.map(item => {
+        if (item.code !== code) return item;
+        const payment = item.payment?.status === 'paid' ? { ...item.payment, status: 'refunded' as const } : item.payment;
+        return { ...item, status: 'canceled', payment };
+      }));
       this.notice.set('Đã hủy lượt đặt ' + code + '.');
       this.selected.set('');
+      await this.load();
     } catch (error) {
       this.error.set(messageFor(error, 'Chưa hủy được lượt đặt.'));
     } finally {

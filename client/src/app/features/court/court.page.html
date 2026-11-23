@@ -41,7 +41,11 @@
           {{ saving() ? 'Đang giữ chỗ…' : 'Xác nhận đặt sân' }}
         </button>
         @if (booking(); as confirmed) {
-          <div class="notice success" role="status"><strong>Đã đặt sân!</strong> Mã {{ confirmed.code }}. <a class="text-link" routerLink="/lich-cua-toi">Xem lịch của tôi</a></div>
+          <div class="notice success" role="status"><strong>Đã đặt sân!</strong> Mã {{ confirmed.code }}.</div>
+          <div class="booking-next">
+            <a class="button button-primary" [routerLink]="['/thanh-toan', confirmed.code]">Thanh toán thử</a>
+            <a class="text-link" routerLink="/lich-cua-toi">Xem lịch của tôi</a>
+          </div>
         }
         @if (bookingError()) { <div class="notice error" role="alert">{{ bookingError() }}</div> }
       </section>

@@ -1,0 +1,64 @@
+<section class="subhero payment-hero">
+  <div class="wrap">
+    <a class="payment-back" routerLink="/lich-cua-toi">Lịch của tôi</a>
+    <h1>Thanh toán</h1>
+  </div>
+</section>
+
+<div class="wrap section payment-page">
+  @if (loading()) {
+    <p role="status">Đang tải lượt đặt…</p>
+  } @else if (loadError()) {
+    <div class="notice error" role="alert">
+      {{ loadError() }} <button class="text-link" type="button" (click)="load()">Tải lại</button>
+    </div>
+  } @else if (booking(); as item) {
+    <div class="payment-layout">
+      <section class="payment-card" aria-labelledby="payment-summary">
+        <p class="eyebrow">Lượt đặt {{ item.code }}</p>
+        <h2 id="payment-summary">{{ item.name }}</h2>
+        <p class="payment-location"><span class="pin" aria-hidden="true"></span> {{ item.location }}</p>
+        <dl class="payment-details">
+          <div><dt>Ngày chơi</dt><dd>{{ calendarLabel(item.date) }}</dd></div>
+          <div><dt>Khung giờ</dt><dd>{{ item.hour }}–{{ endHour(item.hour) }}</dd></div>
+          <div class="payment-total"><dt>Giá đặt sân</dt><dd>{{ money(item.price) }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="payment-card" aria-labelledby="payment-method">
+        @if (receipt(); as proof) {
+          <div class="payment-receipt" role="status">
+            <span class="status payment-status" [class.refunded]="proof.status === 'refunded'">{{ paymentLabel(proof) }}</span>
+            <h2 id="payment-method">Biên nhận</h2>
+            <dl class="payment-details">
+              <div><dt>Mã thanh toán</dt><dd class="booking-code">{{ proof.reference }}</dd></div>
+              <div><dt>Số tiền mô phỏng</dt><dd>{{ money(proof.amount) }}</dd></div>
+              <div><dt>Thời điểm thanh toán</dt><dd>{{ timestampLabel(proof.paidAt) }}</dd></div>
+              @if (proof.refundedAt) {
+                <div><dt>Thời điểm hoàn tiền</dt><dd>{{ timestampLabel(proof.refundedAt) }}</dd></div>
+              }
+            </dl>
+          </div>
+        } @else {
+          <h2 id="payment-method">Thanh toán thử</h2>
+          @if (canPay(item)) {
+            <p class="payment-explainer">Xác nhận để tạo biên nhận cho lượt đặt này.</p>
+          } @else {
+            <p class="payment-explainer">{{ item.status === 'canceled' ? 'Lượt đặt này đã hủy.' : 'Khung giờ chơi đã bắt đầu.' }}</p>
+          }
+        }
+        <p class="payment-note">Giao dịch mô phỏng, không thu tiền thật.</p>
+        @if (paymentError()) {
+          <p class="notice error" role="alert">{{ paymentError() }}</p>
+        }
+        @if (canPay(item)) {
+          <button class="button button-primary full-width payment-confirm" type="button" [disabled]="paying()" (click)="pay()">
+            {{ paying() ? 'Đang xác nhận…' : 'Xác nhận thanh toán thử' }}
+          </button>
+        } @else {
+          <a class="button button-outline payment-confirm" routerLink="/lich-cua-toi">Về lịch của tôi</a>
+        }
+      </section>
+    </div>
+  }
+</div>

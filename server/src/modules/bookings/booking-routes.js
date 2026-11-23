@@ -8,6 +8,27 @@ import { checkDate, getCourt } from '../courts/court-service.js';
 
 export const bookingRoutes = Router();
 
+function bookingLookup(request, response) {
+  const owner = ownerFor(request, response);
+  if (!owner) throw new ApiError(404, 'Không tìm thấy lượt đặt.');
+  return { owner, code: request.params.code };
+}
+
+function futureBooking(lookup) {
+  const { date, hour } = currentTime();
+  return {
+    ...lookup,
+    status: 'confirmed',
+    $or: [{ date: { $gt: date } }, { date, hour: { $gt: hour } }],
+  };
+}
+
+async function getBooking(lookup) {
+  const booking = await Booking.findOne(lookup).lean();
+  if (!booking) throw new ApiError(404, 'Không tìm thấy lượt đặt.');
+  return booking;
+}
+
 bookingRoutes.use((_request, response, next) => {
   response.set('Cache-Control', 'no-store');
   next();
@@ -17,6 +38,10 @@ bookingRoutes.get('/', async (request, response) => {
   const owner = ownerFor(request, response, true);
   const bookings = await Booking.find({ owner }).sort({ date: 1, hour: 1, createdAt: -1 }).lean();
   response.json(bookings.map(publicBooking));
+});
+
+bookingRoutes.get('/:code', async (request, response) => {
+  response.json(publicBooking(await getBooking(bookingLookup(request, response))));
 });
 
 bookingRoutes.post('/', requireJson, async (request, response) => {
@@ -45,17 +70,48 @@ bookingRoutes.post('/', requireJson, async (request, response) => {
   }
 });
 
-bookingRoutes.post('/:code/cancel', requireJson, async (request, response) => {
-  const owner = ownerFor(request, response);
-  if (!owner) throw new ApiError(404, 'Không tìm thấy lượt đặt.');
-  const { date, hour } = currentTime();
+bookingRoutes.post('/:code/payment', requireJson, async (request, response) => {
+  const lookup = bookingLookup(request, response);
+  if (request.body?.method !== 'demo') {
+    throw new ApiError(400, 'Vui lòng chọn thanh toán thử.');
+  }
+
+  // The atomic update uses the stored price and accepts a payment only once.
   const booking = await Booking.findOneAndUpdate({
-    owner, code: request.params.code, status: 'confirmed',
-    $or: [{ date: { $gt: date } }, { date, hour: { $gt: hour } }],
-  }, { $set: { status: 'canceled' } });
+    ...futureBooking(lookup),
+    'payment.status': { $exists: false },
+  }, [{ $set: { payment: {
+    status: 'paid',
+    method: 'demo',
+    reference: 'PAY-' + lookup.code.slice(3),
+    amount: '$price',
+    paidAt: '$$NOW',
+  } } }], { updatePipeline: true, returnDocument: 'after' }).lean();
+
+  const result = booking ?? await getBooking(lookup);
+  if (result.payment?.status !== 'paid') {
+    throw new ApiError(409, 'Lượt đặt đã hủy hoặc đã đến giờ chơi.');
+  }
+  response.json(publicBooking(result));
+});
+
+bookingRoutes.post('/:code/cancel', requireJson, async (request, response) => {
+  const lookup = bookingLookup(request, response);
+  const booking = await Booking.findOneAndUpdate(futureBooking(lookup), [{
+    $set: {
+      status: 'canceled',
+      payment: {
+        $cond: [
+          { $eq: ['$payment.status', 'paid'] },
+          { $mergeObjects: ['$payment', { status: 'refunded', refundedAt: '$$NOW' }] },
+          { $ifNull: ['$payment', '$$REMOVE'] },
+        ],
+      },
+    },
+  }], { updatePipeline: true }).lean();
+
   if (!booking) {
-    const owned = await Booking.exists({ owner, code: request.params.code });
-    if (!owned) throw new ApiError(404, 'Không tìm thấy lượt đặt.');
+    await getBooking(lookup);
     throw new ApiError(409, 'Lượt đặt đã hủy hoặc đã đến giờ chơi.');
   }
   response.status(204).end();
