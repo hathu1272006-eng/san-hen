@@ -107,9 +107,21 @@ select { appearance: none; padding-right: 1.75rem; background-image: linear-grad
 .price { font-weight: 800; white-space: nowrap; }
 .price small { color: var(--muted); font-weight: 500; font-size: .86rem; }
 .guide { background: var(--soft); }
-.guide-grid { margin-top: 1.45rem; display: grid; gap: 1.5rem; grid-template-columns: repeat(3, 1fr); }
-.guide-grid div { border-top: 1px solid #a3b5a6; padding-top: 1rem; }
-.guide-grid p { margin-top: .4rem; color: var(--muted); max-width: 35ch; }
+.guide-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.25rem; align-items: center; padding-block: clamp(2.4rem, 5vw, 3.5rem); }
+.guide-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; margin: 0; padding: 0; list-style: none; }
+.guide-step { display: grid; align-content: start; gap: .8rem; padding: 1.2rem; background: var(--white); border: 1px solid #cedbd0; border-radius: var(--radius); }
+.guide-step p { margin-top: .4rem; color: var(--muted); max-width: 38ch; }
+.guide-step p strong { color: var(--ink); font-weight: 650; }
+.guide-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 11px; color: var(--green); background: #e1ede2; }
+.guide-icon .pin { width: 17px; height: 17px; border-width: 2px; }
+.guide-icon .pin::after { inset: 4px; }
+.guide-calendar, .guide-confirmation { position: relative; display: block; width: 20px; height: 20px; border: 2px solid currentColor; }
+.guide-calendar { border-radius: 4px; }
+.guide-calendar::before { content: ''; position: absolute; inset: 4px 0 auto; border-top: 2px solid currentColor; }
+.guide-calendar::after { content: ''; position: absolute; top: -4px; left: 3px; width: 2px; height: 5px; border-radius: 1px; background: currentColor; box-shadow: 8px 0 currentColor; }
+.guide-confirmation { border-radius: 50%; }
+.guide-confirmation::after { content: ''; position: absolute; left: 4px; top: 3px; width: 7px; height: 9px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(42deg); }
+.guide-action { grid-column: 2; grid-row: 1; }
 .site-footer { background: var(--deep); color: var(--white); padding-block: 1.75rem; }
 .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem 2.5rem; }
 .footer-brand .brand-mark { background: var(--lime); color: var(--deep); }
@@ -194,6 +206,10 @@ select { appearance: none; padding-right: 1.75rem; background-image: linear-grad
   .hero-search { grid-template-columns: 1fr 1fr; padding: .65rem; }
   .hero-search button { grid-column: 1 / -1; }
   .detail-grid, .guide-grid { grid-template-columns: 1fr; }
+  .guide-inner { grid-template-columns: 1fr; }
+  .guide-grid { gap: .7rem; }
+  .guide-step { grid-template-columns: auto minmax(0, 1fr); gap: .85rem; }
+  .guide-action { grid-column: 1; grid-row: auto; justify-self: start; }
   .detail-grid { gap: 1.3rem; }
   .footer-inner { flex-direction: column; align-items: start; gap: 1rem; }
 }

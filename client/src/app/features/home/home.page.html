@@ -40,10 +40,29 @@
 <section class="guide" aria-labelledby="guide-title">
   <div class="wrap section guide-inner">
     <h2 id="guide-title">Đặt sân như thế nào?</h2>
-    <div class="guide-grid">
-      <div><h3>Chọn sân</h3><p>Lọc theo môn, khu vực hoặc tiện ích như mái che và chỗ gửi xe.</p></div>
-      <div><h3>Chọn ngày và giờ</h3><p>Xem lịch trống trong 14 ngày tới. Mỗi khung giờ kéo dài 60 phút.</p></div>
-      <div><h3>Giữ chỗ</h3><p>Xác nhận giờ chơi, rồi mở Lịch của tôi để xem mã đặt hoặc hủy lịch.</p></div>
-    </div>
+    <ol class="guide-grid" role="list">
+      <li class="guide-step">
+        <span class="guide-icon" aria-hidden="true"><span class="pin"></span></span>
+        <div>
+          <h3>Chọn sân</h3>
+          <p>Lọc theo môn, khu vực hoặc tiện ích như mái che và chỗ gửi xe.</p>
+        </div>
+      </li>
+      <li class="guide-step">
+        <span class="guide-icon" aria-hidden="true"><span class="guide-calendar"></span></span>
+        <div>
+          <h3>Chọn ngày và giờ</h3>
+          <p>Xem lịch trống trong 14 ngày tới. Mỗi khung giờ kéo dài 60 phút.</p>
+        </div>
+      </li>
+      <li class="guide-step">
+        <span class="guide-icon" aria-hidden="true"><span class="guide-confirmation"></span></span>
+        <div>
+          <h3>Giữ chỗ</h3>
+          <p>Xác nhận giờ chơi, rồi vào <strong>Lịch của tôi</strong> để xem mã đặt hoặc hủy lịch.</p>
+        </div>
+      </li>
+    </ol>
+    <a class="button button-primary guide-action" routerLink="/san">Tìm sân để đặt</a>
   </div>
 </section>
