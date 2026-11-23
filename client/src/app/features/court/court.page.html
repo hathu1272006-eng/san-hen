@@ -1,0 +1,58 @@
+<div class="wrap section detail-page">
+  <nav class="breadcrumb" aria-label="Đường dẫn"><a routerLink="/san">Tìm sân</a><span aria-hidden="true">/</span><span>Chi tiết sân</span></nav>
+  @if (pageError()) {
+    <div class="notice" role="alert">{{ pageError() }} <a class="text-link" routerLink="/san">Quay về danh sách sân</a></div>
+  } @else if (court(); as venue) {
+    <div class="detail-grid">
+      <section aria-labelledby="venue-title">
+        <img class="detail-image" [src]="'images/' + venue.image" [alt]="venue.alt" width="840" height="500">
+        <p class="eyebrow detail-sport">{{ sportLabel(venue.sport) }}</p>
+        <h1 id="venue-title">{{ venue.name }}</h1>
+        <p class="location"><span class="pin" aria-hidden="true"></span> {{ venue.location }}</p>
+        <p class="detail-description">{{ venue.description }}</p>
+        <ul class="feature-list" aria-label="Tiện ích">@for (feature of venue.features; track feature) { <li>{{ feature }}</li> }</ul>
+      </section>
+      <section class="booking-panel" aria-labelledby="booking-title">
+        <h2 id="booking-title">Đặt sân</h2>
+        <p class="panel-price"><strong>{{ money(venue.price) }}</strong> / 60 phút</p>
+        <label for="booking-day">Ngày chơi</label>
+        <select id="booking-day" [value]="date()" [disabled]="saving()" (change)="selectDate($any($event.target).value); booking.set(null); bookingError.set('')">
+          @for (day of days; track day) { <option [value]="day">{{ calendarLabel(day) }}</option> }
+        </select>
+        <h3 id="slot-title">Giờ bắt đầu</h3>
+        @if (loadingSlots()) {
+          <p role="status">Đang tải giờ trống…</p>
+        } @else if (slotError()) {
+          <p role="alert">{{ slotError() }} <button class="text-link" type="button" (click)="selectDate(date())">Thử lại</button></p>
+        } @else {
+          <div class="slot-grid" role="group" aria-labelledby="slot-title">
+            @for (slot of slots(); track slot.hour) {
+              <button type="button" class="slot"
+                [disabled]="slot.status !== 'available' || saving()"
+                [attr.aria-pressed]="hour() === slot.hour"
+                [attr.aria-label]="slot.hour + (slot.status === 'booked' ? ', đã có người đặt' : slot.status === 'past' ? ', đã qua' : ', còn trống')"
+                (click)="hour.set(slot.hour); booking.set(null); bookingError.set('')">{{ slot.hour }}</button>
+            }
+          </div>
+          @if (hour()) { <p class="slot-note">Đã chọn {{ hour() }}–{{ endHour(hour()) }}.</p> }
+          @else { <p class="slot-note">Khung giờ bị gạch đã có người đặt hoặc đã qua.</p> }
+        }
+        <button class="button button-primary full-width" type="button" [disabled]="!hour() || loadingSlots() || saving()" (click)="confirm()">
+          {{ saving() ? 'Đang giữ chỗ…' : 'Xác nhận đặt sân' }}
+        </button>
+        @if (booking(); as confirmed) {
+          <div class="notice success" role="status"><strong>Đã đặt sân!</strong> Mã {{ confirmed.code }}. <a class="text-link" routerLink="/lich-cua-toi">Xem lịch của tôi</a></div>
+        }
+        @if (bookingError()) { <div class="notice error" role="alert">{{ bookingError() }}</div> }
+      </section>
+    </div>
+    @if (related().length) {
+      <section class="related" aria-labelledby="related-title">
+        <div class="section-heading"><h2 id="related-title">Sân gợi ý</h2></div>
+        <div class="card-grid">@for (court of related(); track court.slug) { <app-court-card [court]="court" /> }</div>
+      </section>
+    }
+  } @else {
+    <p role="status">Đang tải thông tin sân…</p>
+  }
+</div>

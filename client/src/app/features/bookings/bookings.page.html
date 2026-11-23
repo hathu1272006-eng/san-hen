@@ -1,0 +1,46 @@
+<section class="subhero">
+  <div class="wrap"><h1>Lịch của tôi</h1><p>Xem mã giữ chỗ, giờ chơi và các lượt đặt đã hủy.</p></div>
+</section>
+<section class="wrap section my-bookings" aria-label="Các lượt đặt sân">
+  @if (loading()) {
+    <p role="status">Đang tải lịch của bạn…</p>
+  } @else {
+    @if (error()) {
+      <div class="notice error" role="alert">{{ error() }} <button class="text-link" type="button" (click)="load()">Tải lại lịch</button></div>
+    }
+    @if (notice()) { <div class="notice success" role="status">{{ notice() }}</div> }
+    @if (!bookings().length && !error()) {
+      <div class="empty">
+        <h2>Bạn chưa có lượt đặt</h2>
+        <p>Chọn một sân và khung giờ để bắt đầu.</p>
+        <a class="button button-primary" routerLink="/san">Tìm sân</a>
+      </div>
+    }
+    @for (booking of bookings(); track booking.code) {
+      <article class="booking-row">
+        <div>
+          <p class="booking-code">{{ booking.code }}</p>
+          <h2><a [routerLink]="['/san', booking.slug]">{{ booking.name }}</a></h2>
+          <p>{{ calendarLabel(booking.date) }} · {{ booking.hour }}–{{ endHour(booking.hour) }}</p>
+          <p>{{ booking.location }}</p>
+        </div>
+        <div class="booking-actions">
+          <span class="status" [class.canceled]="booking.status === 'canceled'">
+            {{ booking.status === 'canceled' ? 'Đã hủy' : isUpcoming(booking.date, booking.hour) ? 'Đã giữ chỗ' : 'Đã qua' }}
+          </span>
+          <strong>{{ money(booking.price) }}</strong>
+          @if (booking.status === 'confirmed' && isUpcoming(booking.date, booking.hour)) {
+            @if (selected() === booking.code) {
+              <div class="cancel-actions">
+                <button type="button" class="button button-danger" [disabled]="!!canceling()" (click)="cancel(booking.code)">{{ canceling() ? 'Đang hủy…' : 'Xác nhận hủy' }}</button>
+                <button type="button" class="text-link" [disabled]="!!canceling()" (click)="selected.set('')">Giữ lịch</button>
+              </div>
+            } @else {
+              <button type="button" class="text-link" [disabled]="!!canceling()" (click)="selected.set(booking.code)">Hủy lượt đặt</button>
+            }
+          }
+        </div>
+      </article>
+    }
+  }
+</section>

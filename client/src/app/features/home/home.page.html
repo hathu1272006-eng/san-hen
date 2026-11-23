@@ -1,0 +1,49 @@
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="pin" aria-hidden="true"></span> Sân thể thao tại TP.HCM</p>
+      <h1 id="hero-title">Tìm sân,<br><em>hẹn bạn.</em></h1>
+      <p class="hero-deck">Chọn sân cầu lông, bóng đá mini hoặc bóng rổ rồi giữ giờ chơi cho cả nhóm.</p>
+      <form class="hero-search" (ngSubmit)="search()">
+        <label>Môn thể thao
+          <select name="sport" [(ngModel)]="sport">
+            <option value="">Tất cả các môn</option>
+            @for (item of sports; track item.id) { <option [value]="item.id">{{ item.label }}</option> }
+          </select>
+        </label>
+        <label>Khu vực
+          <select name="area" [(ngModel)]="area">
+            <option value="">Tất cả khu vực</option>
+            @for (item of areas; track item) { <option [value]="item">{{ item }}</option> }
+          </select>
+        </label>
+        <button class="button button-lime" type="submit"><span class="search-icon" aria-hidden="true"></span> Tìm sân</button>
+      </form>
+    </div>
+  </div>
+</section>
+<section class="wrap section featured" aria-labelledby="featured-title">
+  <div class="section-heading">
+    <div><h2 id="featured-title">Sân nổi bật</h2><p>Chọn một sân để xem giá và giờ còn trống.</p></div>
+    <a class="button button-outline" routerLink="/san">Xem tất cả sân</a>
+  </div>
+  @if (loading()) {
+    <p role="status">Đang tải danh sách sân…</p>
+  } @else if (failed()) {
+    <div class="notice" role="alert">Chưa tải được danh sách sân. <button class="text-link" type="button" (click)="load()">Thử lại</button></div>
+  } @else {
+    <div class="card-grid">
+      @for (court of featured(); track court.slug) { <app-court-card [court]="court" /> }
+    </div>
+  }
+</section>
+<section class="guide" aria-labelledby="guide-title">
+  <div class="wrap section guide-inner">
+    <h2 id="guide-title">Đặt sân như thế nào?</h2>
+    <div class="guide-grid">
+      <div><h3>Chọn sân</h3><p>Lọc theo môn, khu vực hoặc tiện ích như mái che và chỗ gửi xe.</p></div>
+      <div><h3>Chọn ngày và giờ</h3><p>Xem lịch trống trong 14 ngày tới. Mỗi khung giờ kéo dài 60 phút.</p></div>
+      <div><h3>Giữ chỗ</h3><p>Xác nhận giờ chơi, rồi mở Lịch của tôi để xem mã đặt hoặc hủy lịch.</p></div>
+    </div>
+  </div>
+</section>

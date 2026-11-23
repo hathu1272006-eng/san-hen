@@ -1,0 +1,40 @@
+<section class="subhero">
+  <div class="wrap">
+    <p class="eyebrow"><span class="pin" aria-hidden="true"></span> TP.HCM</p>
+    <h1>Tìm sân</h1>
+    <p>Lọc theo môn và khu vực, rồi chọn sân để xem lịch trống.</p>
+  </div>
+</section>
+<section class="wrap section catalog" aria-label="Danh sách sân">
+  <div class="chips" role="group" aria-label="Môn thể thao">
+    <button type="button" class="chip" [attr.aria-pressed]="sport === ''" (click)="apply('')">Tất cả</button>
+    @for (item of sports; track item.id) {
+      <button type="button" class="chip" [attr.aria-pressed]="sport === item.id" (click)="apply(item.id)">{{ item.label }}</button>
+    }
+  </div>
+  <form class="filter-bar" (ngSubmit)="apply()">
+    <label>Tên sân hoặc tiện ích
+      <input type="search" name="query" maxlength="100" [(ngModel)]="query" placeholder="Ví dụ: mái che, gửi xe">
+    </label>
+    <label>Khu vực
+      <select name="area" [(ngModel)]="area">
+        <option value="">Tất cả khu vực</option>
+        @for (item of areas; track item) { <option [value]="item">{{ item }}</option> }
+      </select>
+    </label>
+    <button class="button button-primary" type="submit">Áp dụng bộ lọc</button>
+    <button class="text-link" type="button" (click)="clear()">Xóa bộ lọc</button>
+  </form>
+  @if (loading()) {
+    <p role="status">Đang tìm sân…</p>
+  } @else if (error()) {
+    <div class="notice" role="alert">{{ error() }} <button type="button" class="text-link" (click)="load()">Thử lại</button></div>
+  } @else {
+    <h2 class="result-count" aria-live="polite">{{ rows().length }} sân phù hợp</h2>
+    @if (rows().length) {
+      <div class="card-grid">@for (court of rows(); track court.slug) { <app-court-card [court]="court" /> }</div>
+    } @else {
+      <div class="notice">Thử một từ khóa hoặc khu vực khác.</div>
+    }
+  }
+</section>
