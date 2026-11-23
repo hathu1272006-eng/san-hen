@@ -22,9 +22,16 @@ import { environment } from '../core/environment';
     <main id="main-content" tabindex="-1"><router-outlet /></main>
     <footer class="site-footer">
       <div class="wrap footer-inner">
-        <a class="wordmark" routerLink="/"><span class="brand-mark" aria-hidden="true"></span><span>Sân Hẹn<span class="brand-period">.</span></span></a>
-        <p>{{ demo ? 'Bản trải nghiệm · Lượt đặt lưu trên trình duyệt này.' : 'Dự án minh họa · Thông tin sân là dữ liệu mẫu.' }}</p>
-        <a class="text-link" routerLink="/san">Khám phá sân</a>
+        <div class="footer-brand">
+          <a class="wordmark" routerLink="/" aria-label="Sân Hẹn, trang chủ">
+            <span class="brand-mark" aria-hidden="true"></span><span>Sân Hẹn<span class="brand-period">.</span></span>
+          </a>
+          <p>{{ demo ? 'Lượt đặt trong bản trải nghiệm được lưu trên trình duyệt này.' : 'Thông tin sân trên website là dữ liệu minh họa.' }}</p>
+        </div>
+        <nav class="footer-nav" aria-label="Điều hướng cuối trang">
+          <a routerLink="/san">Tìm sân</a>
+          <a class="footer-bookings" routerLink="/lich-cua-toi">Lịch của tôi</a>
+        </nav>
       </div>
     </footer>
   `,

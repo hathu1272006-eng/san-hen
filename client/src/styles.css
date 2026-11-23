@@ -38,7 +38,7 @@ h3 { font-size: 1.22rem; letter-spacing: -.035em; }
 .skip-link:focus { transform: none; }
 
 .site-header { background: var(--white); border-bottom: 1px solid var(--line); }
-.header-inner, .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; }
 .header-inner { min-height: 72px; }
 .wordmark { display: inline-flex; align-items: center; gap: .63rem; font-size: 1.45rem; line-height: 1; font-weight: 800; letter-spacing: -.06em; white-space: nowrap; }
 .brand-mark { width: 34px; height: 34px; display: inline-grid; place-items: center; position: relative; background: var(--deep); color: var(--lime); border-radius: 9px; flex: none; }
@@ -110,8 +110,17 @@ select { appearance: none; padding-right: 1.75rem; background-image: linear-grad
 .guide-grid { margin-top: 1.45rem; display: grid; gap: 1.5rem; grid-template-columns: repeat(3, 1fr); }
 .guide-grid div { border-top: 1px solid #a3b5a6; padding-top: 1rem; }
 .guide-grid p { margin-top: .4rem; color: var(--muted); max-width: 35ch; }
-.site-footer { border-top: 1px solid var(--line); background: var(--white); padding-block: 1.6rem; }
-.site-footer p { color: var(--muted); font-size: .9rem; }
+.site-footer { background: var(--deep); color: var(--white); padding-block: 1.75rem; }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem 2.5rem; }
+.footer-brand .brand-mark { background: var(--lime); color: var(--deep); }
+.footer-brand .brand-period { color: var(--lime); }
+.footer-brand p { margin-top: .55rem; color: #c7d9cd; font-size: .9rem; line-height: 1.5; }
+.footer-nav { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem 1.1rem; }
+.footer-nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: .95rem; font-weight: 650; }
+.footer-nav a:hover { color: var(--lime); text-decoration: underline; text-underline-offset: 4px; }
+.footer-nav .footer-bookings { border: 1px solid #587769; border-radius: 8px; padding-inline: .85rem; }
+.footer-nav .footer-bookings:hover { background: #214636; border-color: #84a893; text-decoration: none; }
+.site-footer a:focus-visible { outline-color: var(--lime); }
 
 .subhero { background: var(--deep); color: var(--white); padding-block: 3rem; }
 .subhero .eyebrow { color: var(--lime); margin-bottom: .55rem; }
@@ -186,8 +195,7 @@ select { appearance: none; padding-right: 1.75rem; background-image: linear-grad
   .hero-search button { grid-column: 1 / -1; }
   .detail-grid, .guide-grid { grid-template-columns: 1fr; }
   .detail-grid { gap: 1.3rem; }
-  .site-footer .footer-inner { flex-wrap: wrap; justify-content: start; }
-  .site-footer p { width: 100%; order: 1; }
+  .footer-inner { flex-direction: column; align-items: start; gap: 1rem; }
 }
 @media (max-width: 450px) {
   .card-grid, .related .card-grid { grid-template-columns: 1fr; }
