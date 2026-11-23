@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 
 const payment = new Schema({
   status: { type: String, enum: ['paid', 'refunded'], required: true },
-  method: { type: String, enum: ['demo'], required: true },
+  method: { type: String, enum: ['demo', 'bank-qr', 'wallet'], required: true },
   reference: { type: String, required: true },
   amount: { type: Number, min: 0, required: true },
   paidAt: { type: Date, required: true },

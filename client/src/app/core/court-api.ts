@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from './environment';
-import { Booking, BookingRequest, Court, Filters, Slot } from './models';
+import { Booking, BookingRequest, Court, Filters, PaymentMethod, Slot } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class CourtApi {
@@ -47,9 +47,9 @@ export class CourtApi {
     return firstValueFrom(this.http.post<Booking>(this.base + '/bookings', request));
   }
 
-  async pay(code: string): Promise<Booking> {
-    if (environment.demo) return (await import('./demo-store')).demoStore.pay(code);
-    return firstValueFrom(this.http.post<Booking>(this.bookingUrl(code) + '/payment', { method: 'demo' }));
+  async pay(code: string, method: PaymentMethod): Promise<Booking> {
+    if (environment.demo) return (await import('./demo-store')).demoStore.pay(code, method);
+    return firstValueFrom(this.http.post<Booking>(this.bookingUrl(code) + '/payment', { method }));
   }
 
   async cancel(code: string): Promise<void> {

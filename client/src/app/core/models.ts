@@ -36,9 +36,16 @@ export interface BookingRequest {
   hour: string;
 }
 
+export const paymentMethods = [
+  { id: 'bank-qr', label: 'Chuyển khoản qua mã QR', description: 'Xem mã QR và nội dung chuyển khoản.' },
+  { id: 'wallet', label: 'Ví điện tử', description: 'Kiểm tra số tiền và xác nhận qua ví.' },
+] as const;
+
+export type PaymentMethod = typeof paymentMethods[number]['id'];
+
 export type Payment = { status: 'unpaid' } | {
   status: 'paid' | 'refunded';
-  method: 'demo';
+  method: PaymentMethod | 'demo';
   reference: string;
   amount: number;
   paidAt: string;
@@ -61,10 +68,14 @@ export function canPay(booking: Booking): boolean {
 
 export function paymentLabel(payment?: Payment): string {
   switch (payment?.status) {
-    case 'paid': return 'Đã thanh toán thử';
-    case 'refunded': return 'Đã hoàn tiền thử';
+    case 'paid': return 'Đã thanh toán';
+    case 'refunded': return 'Đã hoàn tiền';
     default: return 'Chưa thanh toán';
   }
+}
+
+export function paymentMethodLabel(method: PaymentMethod | 'demo'): string {
+  return paymentMethods.find(option => option.id === method)?.label ?? 'Thanh toán trực tuyến';
 }
 
 export function sportLabel(sport: Sport): string {

@@ -35,14 +35,14 @@
           </span>
           <strong>{{ money(booking.price) }}</strong>
           @if (selected() !== booking.code && canPay(booking)) {
-            <a class="button button-primary" [routerLink]="['/thanh-toan', booking.code]">Thanh toán thử</a>
+            <a class="button button-primary" [routerLink]="['/thanh-toan', booking.code]">Thanh toán</a>
           } @else if (selected() !== booking.code && booking.payment && booking.payment.status !== 'unpaid') {
             <a class="text-link" [routerLink]="['/thanh-toan', booking.code]">Xem biên nhận</a>
           }
           @if (booking.status === 'confirmed' && isUpcoming(booking.date, booking.hour)) {
             @if (selected() === booking.code) {
               @if (booking.payment?.status === 'paid') {
-                <p class="cancel-note">Khoản thanh toán thử sẽ được hoàn khi hủy.</p>
+                <p class="cancel-note">Khoản thanh toán sẽ được hoàn trong bản mô phỏng.</p>
               }
               <div class="cancel-actions">
                 <button type="button" class="button button-danger" [disabled]="!!canceling()" (click)="cancel(booking.code)">{{ canceling() ? 'Đang hủy…' : 'Xác nhận hủy' }}</button>

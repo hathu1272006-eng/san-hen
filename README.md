@@ -6,7 +6,7 @@ Website tiếng Việt để tìm và đặt sân cầu lông, bóng đá mini h
 
 Giải nén toàn bộ thư mục. Trên Windows, mở `Mo-ban-demo.cmd`. Hoặc chạy `node preview.mjs` từ thư mục dự án. Sau đó vào [http://127.0.0.1:4173](http://127.0.0.1:4173).
 
-Bản này đã được build sẵn và chỉ cần Node.js. Bạn có thể tìm sân, đặt giờ, thanh toán thử, xem biên nhận và hủy lượt đã đặt. Dữ liệu lưu trong trình duyệt, nên mỗi trình duyệt có lịch riêng. Có thể đặt lại trước giờ chơi sau khi hủy.
+Bản này đã được build sẵn và chỉ cần Node.js. Bạn có thể tìm sân, đặt giờ, thanh toán, xem biên nhận và hủy lượt đã đặt. Dữ liệu lưu trong trình duyệt, nên mỗi trình duyệt có lịch riêng. Có thể đặt lại trước giờ chơi sau khi hủy.
 
 ## Chạy đầy đủ frontend và backend
 
@@ -59,7 +59,7 @@ FastAPI xếp hạng sân tương tự bằng TF-IDF và cosine similarity. Khi 
 
 Khi xác nhận đặt sân, API kiểm tra lại ngày, giờ và bảng giá. MongoDB dùng chỉ mục duy nhất cho các lượt đang giữ chỗ theo sân, ngày và giờ. Khi hủy, lượt đặt vẫn có trong lịch sử và khung giờ được mở lại. Cookie HttpOnly nhận diện trình duyệt để truy xuất lịch theo chủ sở hữu.
 
-Thanh toán thử lấy số tiền từ lượt đặt và tạo một mã biên nhận dùng lại nếu gửi lặp. Khi hủy trước giờ chơi, lượt đã thanh toán chuyển sang trạng thái hoàn tiền thử. Các giao dịch này là mô phỏng, không thu hoặc hoàn tiền thật.
+Trong mục **Lịch của tôi**, chọn **Thanh toán** ở lượt đặt còn hiệu lực. Kiểm tra thông tin sân, chọn chuyển khoản qua mã QR hoặc ví điện tử rồi xác nhận giao dịch để xem biên nhận. Số tiền lấy từ lượt đặt. Nếu gửi yêu cầu lặp, hệ thống trả lại biên nhận đã lưu. Khi hủy trước giờ chơi, lượt đã thanh toán chuyển sang trạng thái hoàn tiền. Cả hai phương thức đều chạy trong bản mô phỏng. Mã QR chứa mã lượt đặt và không dùng để chuyển tiền.
 
 ## Ảnh minh họa
 

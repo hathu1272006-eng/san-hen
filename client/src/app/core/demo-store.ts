@@ -1,7 +1,7 @@
 import data from '../../../../shared/courts.json';
 import { bookableDays, isUpcoming } from '../../../../shared/schedule.mjs';
 import { fallbackRecommendations, matchesCourt } from '../../../../shared/search.mjs';
-import { Booking, BookingRequest, canPay, Court, Filters, Slot } from './models';
+import { Booking, BookingRequest, canPay, Court, Filters, PaymentMethod, Slot } from './models';
 
 const courts = data as Court[];
 const bookingKey = 'san-hen.demo.bookings.v1';
@@ -72,7 +72,7 @@ export const demoStore = {
       return booking;
     });
   },
-  pay(code: string): Promise<Booking> {
+  pay(code: string, method: PaymentMethod): Promise<Booking> {
     return writeBookings(() => {
       const all = bookings();
       const booking = getBooking(code, all);
@@ -80,7 +80,7 @@ export const demoStore = {
       if (!canPay(booking)) throw new Error('Lượt đặt đã hủy hoặc đã đến giờ chơi.');
 
       booking.payment = {
-        status: 'paid', method: 'demo', reference: 'PAY-' + code.slice(3),
+        status: 'paid', method, reference: 'PAY-' + code.slice(3),
         amount: booking.price, paidAt: new Date().toISOString(),
       };
       save(all);

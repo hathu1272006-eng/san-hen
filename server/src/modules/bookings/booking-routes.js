@@ -72,8 +72,9 @@ bookingRoutes.post('/', requireJson, async (request, response) => {
 
 bookingRoutes.post('/:code/payment', requireJson, async (request, response) => {
   const lookup = bookingLookup(request, response);
-  if (request.body?.method !== 'demo') {
-    throw new ApiError(400, 'Vui lòng chọn thanh toán thử.');
+  const { method } = request.body ?? {};
+  if (!['demo', 'bank-qr', 'wallet'].includes(method)) {
+    throw new ApiError(400, 'Vui lòng chọn phương thức thanh toán hợp lệ.');
   }
 
   // The atomic update uses the stored price and accepts a payment only once.
@@ -82,7 +83,7 @@ bookingRoutes.post('/:code/payment', requireJson, async (request, response) => {
     'payment.status': { $exists: false },
   }, [{ $set: { payment: {
     status: 'paid',
-    method: 'demo',
+    method,
     reference: 'PAY-' + lookup.code.slice(3),
     amount: '$price',
     paidAt: '$$NOW',

@@ -13,52 +13,129 @@
       {{ loadError() }} <button class="text-link" type="button" (click)="load()">Tải lại</button>
     </div>
   } @else if (booking(); as item) {
-    <div class="payment-layout">
-      <section class="payment-card" aria-labelledby="payment-summary">
-        <p class="eyebrow">Lượt đặt {{ item.code }}</p>
-        <h2 id="payment-summary">{{ item.name }}</h2>
-        <p class="payment-location"><span class="pin" aria-hidden="true"></span> {{ item.location }}</p>
-        <dl class="payment-details">
-          <div><dt>Ngày chơi</dt><dd>{{ calendarLabel(item.date) }}</dd></div>
-          <div><dt>Khung giờ</dt><dd>{{ item.hour }}–{{ endHour(item.hour) }}</dd></div>
-          <div class="payment-total"><dt>Giá đặt sân</dt><dd>{{ money(item.price) }}</dd></div>
-        </dl>
-      </section>
+    @let proof = receipt();
+    @let available = canPay(item);
+    @if (available || proof) {
+      @let currentStep = proof ? 3 : step();
+      <ol class="checkout-steps" aria-label="Tiến độ thanh toán">
+        @for (label of steps; track label; let index = $index) {
+          <li [class.completed]="index < currentStep" [attr.aria-current]="index === currentStep ? 'step' : null">
+            <span class="checkout-step-number" aria-hidden="true">{{ index < currentStep ? '✓' : index + 1 }}</span>
+            <span>{{ label }}</span>
+          </li>
+        }
+      </ol>
+    }
 
-      <section class="payment-card" aria-labelledby="payment-method">
-        @if (receipt(); as proof) {
-          <div class="payment-receipt" role="status">
-            <span class="status payment-status" [class.refunded]="proof.status === 'refunded'">{{ paymentLabel(proof) }}</span>
-            <h2 id="payment-method">Biên nhận</h2>
-            <dl class="payment-details">
-              <div><dt>Mã thanh toán</dt><dd class="booking-code">{{ proof.reference }}</dd></div>
-              <div><dt>Số tiền mô phỏng</dt><dd>{{ money(proof.amount) }}</dd></div>
-              <div><dt>Thời điểm thanh toán</dt><dd>{{ timestampLabel(proof.paidAt) }}</dd></div>
-              @if (proof.refundedAt) {
-                <div><dt>Thời điểm hoàn tiền</dt><dd>{{ timestampLabel(proof.refundedAt) }}</dd></div>
-              }
-            </dl>
+    <div class="payment-layout">
+      <section class="payment-card" aria-labelledby="checkout-heading">
+        @if (proof) {
+          <div class="payment-result" [class.refunded]="proof.status === 'refunded'">
+            <span class="payment-result-icon" aria-hidden="true">{{ proof.status === 'refunded' ? '↶' : '✓' }}</span>
+            <div>
+              <h2 id="checkout-heading" tabindex="-1" #stepHeading>{{ proof.status === 'refunded' ? 'Đã hoàn tiền' : 'Thanh toán thành công' }}</h2>
+              <p>Biên nhận thanh toán</p>
+            </div>
+          </div>
+          <dl class="payment-details">
+            <div><dt>Mã giao dịch</dt><dd class="booking-code">{{ proof.reference }}</dd></div>
+            <div><dt>Phương thức</dt><dd>{{ paymentMethodLabel(proof.method) }}</dd></div>
+            <div><dt>Thời điểm thanh toán</dt><dd>{{ timestampLabel(proof.paidAt) }}</dd></div>
+            @if (proof.refundedAt) {
+              <div><dt>Thời điểm hoàn tiền</dt><dd>{{ timestampLabel(proof.refundedAt) }}</dd></div>
+            }
+            <div class="payment-total"><dt>Số tiền</dt><dd>{{ money(proof.amount) }}</dd></div>
+          </dl>
+          <div class="checkout-actions">
+            <a class="button button-primary" routerLink="/lich-cua-toi">Về lịch của tôi</a>
+          </div>
+        } @else if (!available) {
+          <h2 id="checkout-heading" tabindex="-1" #stepHeading>Không thể thanh toán</h2>
+          <p class="payment-explainer">{{ item.status === 'canceled' ? 'Lượt đặt này đã hủy.' : 'Khung giờ chơi đã bắt đầu.' }}</p>
+          <div class="checkout-actions">
+            <a class="button button-outline" routerLink="/lich-cua-toi">Về lịch của tôi</a>
           </div>
         } @else {
-          <h2 id="payment-method">Thanh toán thử</h2>
-          @if (canPay(item)) {
-            <p class="payment-explainer">Xác nhận để tạo biên nhận cho lượt đặt này.</p>
-          } @else {
-            <p class="payment-explainer">{{ item.status === 'canceled' ? 'Lượt đặt này đã hủy.' : 'Khung giờ chơi đã bắt đầu.' }}</p>
+          @switch (step()) {
+            @case (0) {
+              <h2 id="checkout-heading" tabindex="-1" #stepHeading>Kiểm tra lượt đặt</h2>
+              <p class="payment-explainer">Xem lại sân và giờ chơi trước khi chọn phương thức thanh toán.</p>
+              <dl class="payment-details">
+                <div><dt>Sân</dt><dd>{{ item.name }}</dd></div>
+                <div><dt>Ngày chơi</dt><dd>{{ calendarLabel(item.date) }}</dd></div>
+                <div><dt>Khung giờ</dt><dd>{{ item.hour }}–{{ endHour(item.hour) }}</dd></div>
+              </dl>
+              <div class="checkout-actions">
+                <button class="button button-primary" type="button" (click)="changeStep(1)">Chọn phương thức</button>
+              </div>
+            }
+            @case (1) {
+              <h2 id="checkout-heading" tabindex="-1" #stepHeading>Phương thức thanh toán</h2>
+              <fieldset class="checkout-methods" aria-labelledby="checkout-heading">
+                @for (option of methods; track option.id) {
+                  <label class="checkout-method" [class.selected]="method() === option.id">
+                    <span class="checkout-method-icon" [class.wallet]="option.id === 'wallet'" aria-hidden="true"></span>
+                    <span><strong>{{ option.label }}</strong><small>{{ option.description }}</small></span>
+                    <input type="radio" name="checkout-method" [value]="option.id" [checked]="method() === option.id" (change)="method.set(option.id)">
+                  </label>
+                }
+              </fieldset>
+              <div class="checkout-actions">
+                <button class="button button-primary" type="button" (click)="changeStep(2)" [disabled]="!method()">Tiếp tục</button>
+                <button class="button button-outline" type="button" (click)="changeStep(0)">Quay lại</button>
+              </div>
+            }
+            @case (2) {
+              <h2 id="checkout-heading" tabindex="-1" #stepHeading>Xác nhận giao dịch</h2>
+              @if (method(); as chosen) {
+                <dl class="payment-details">
+                  <div><dt>Đơn vị nhận</dt><dd>Sân Hẹn</dd></div>
+                  <div><dt>Phương thức</dt><dd>{{ paymentMethodLabel(chosen) }}</dd></div>
+                  <div class="payment-total"><dt>Số tiền thanh toán</dt><dd>{{ money(item.price) }}</dd></div>
+                </dl>
+                @if (chosen === 'bank-qr') {
+                  <div class="checkout-qr">
+                    @if (qrImage()) {
+                      <img [src]="qrImage()" width="138" height="138" alt="Mã QR minh họa cho lượt đặt">
+                    } @else if (!qrError()) {
+                      <span class="checkout-qr-placeholder" role="status">Đang tạo mã QR…</span>
+                    }
+                    <div>
+                      <strong>Nội dung giao dịch</strong>
+                      <p class="booking-code">{{ item.code }}</p>
+                      <small>{{ qrError() ? 'Không hiển thị được mã QR.' : 'Mã QR chứa mã lượt đặt của giao dịch mô phỏng.' }}</small>
+                    </div>
+                  </div>
+                }
+              }
+              @if (paymentError()) {
+                <p class="notice error" role="alert">{{ paymentError() }}</p>
+              }
+              <div class="checkout-actions">
+                <button class="button button-primary" type="button" [disabled]="paying()" (click)="pay()">
+                  {{ paying() ? 'Đang xử lý…' : 'Xác nhận thanh toán' }}
+                </button>
+                <button class="button button-outline" type="button" [disabled]="paying()" (click)="changeStep(1)">Đổi phương thức</button>
+              </div>
+            }
           }
         }
-        <p class="payment-note">Giao dịch mô phỏng, không thu tiền thật.</p>
-        @if (paymentError()) {
-          <p class="notice error" role="alert">{{ paymentError() }}</p>
-        }
-        @if (canPay(item)) {
-          <button class="button button-primary full-width payment-confirm" type="button" [disabled]="paying()" (click)="pay()">
-            {{ paying() ? 'Đang xác nhận…' : 'Xác nhận thanh toán thử' }}
-          </button>
-        } @else {
-          <a class="button button-outline payment-confirm" routerLink="/lich-cua-toi">Về lịch của tôi</a>
-        }
+        <p class="payment-note">Giao dịch mô phỏng, không phát sinh chuyển tiền.</p>
       </section>
+
+      <aside class="payment-card checkout-summary" aria-labelledby="payment-summary">
+        <h2 id="payment-summary">Tóm tắt lượt đặt</h2>
+        <p class="checkout-court">{{ item.name }}</p>
+        <p class="payment-location"><span class="pin" aria-hidden="true"></span> {{ item.location }}</p>
+        <dl class="payment-details">
+          <div><dt>Mã lượt đặt</dt><dd class="booking-code">{{ item.code }}</dd></div>
+          @if (proof || step() > 0) {
+            <div><dt>Ngày chơi</dt><dd>{{ calendarLabel(item.date) }}</dd></div>
+            <div><dt>Khung giờ</dt><dd>{{ item.hour }}–{{ endHour(item.hour) }}</dd></div>
+          }
+          <div class="payment-total"><dt>Tổng cộng</dt><dd>{{ money(item.price) }}</dd></div>
+        </dl>
+      </aside>
     </div>
   }
 </div>
